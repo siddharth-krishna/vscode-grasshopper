@@ -1,0 +1,66 @@
+{
+    "name": "vscode-grasshopper",
+    "displayName": "Grasshopper",
+    "description": "Grammar and verification of Grasshopper input files",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.31.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "activationEvents": [
+        "onCommand:grasshopper.verifyFile"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "grasshopper.verifyFile",
+                "title": "Verify This File",
+                "category": "Grasshopper"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "grasshopper.verifyFile",
+                "key": "f5",
+                "when": "editorTextFocus"
+            }
+        ],
+        "languages": [
+            {
+                "id": "grasshopper",
+                "aliases": [
+                    "Grasshopper",
+                    "grasshopper"
+                ],
+                "extensions": [
+                    ".spl"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "grasshopper",
+                "scopeName": "source.grasshopper",
+                "path": "./syntaxes/grasshopper.tmLanguage.json"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^3.3.1",
+        "vscode": "^1.1.28",
+        "tslint": "^5.12.1",
+        "@types/node": "^10.12.21",
+        "@types/mocha": "^2.2.42"
+    }
+}
