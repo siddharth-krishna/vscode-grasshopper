@@ -37,8 +37,8 @@ function verifyFile(): void {
         let document = vscode.window.activeTextEditor.document;
         let options = undefined;
         // vscode.workspace.rootPath ? { cwd: vscode.workspace.rootPath } : undefined;
-        let fileName = vscode.window.activeTextEditor.document.fileName;
-        let args = [fileName]; // TODO get args from first line
+        let filePath = vscode.window.activeTextEditor.document.fileName;
+        let args = [filePath];
         let rawResult = '';
 
         let childProcess = cp.spawn('grasshopper', args, options);
@@ -46,54 +46,72 @@ function verifyFile(): void {
             console.log('Failed to start subprocess.\n' + err);
         });
         if (childProcess.pid) {
-            childProcess.stdout.on('data', (data: Buffer) => {
-                rawResult += data;
-            });
-            childProcess.stdout.on('end', () => {
+            childProcess.stdout.on('data', (data: Buffer) => { rawResult += data; });
+            childProcess.stderr.on('data', (data: Buffer) => { rawResult += data; });
+            childProcess.on('close', (code: Number, signal: string) => {
                 console.log(rawResult);
                 let lines = rawResult.split('\n');
-                let errorRegex = '^[^ (]*\\((\\d+),(\\d+)\\): (\\w+)\\b(.*)$';
-                let i = 1;
+                let errorRegex = '^File "([^"]*)", line (\\d+), columns (\\d+)-(\\d+):$';
+                let errorRegex2 =
+                    '^File "([^"]*)", line (\\d+), column (\\d+) to line (\\d+), column (\\d+):$';
+                let i = 0;
                 let diags = [];
                 while (i < lines.length) {
                     let res = lines[i].match(errorRegex);
+                    let res2 = lines[i].match(errorRegex2);
                     if (res) {
-                        let lineNum = Number(res[1]) - 1;
-                        let startChar = Number(res[2]) - 1;
-                        let endChar = document.lineAt(lineNum).range.end.character;
-
-                        // Gather all the trace info etc
-                        let msg = res[3] + res[4];
-                        while ((lines[++i].trim() !== '') && !lines[i].match(errorRegex)) {
-                            msg += '\n' + lines[i];
-                        }
+                        let errorFile = res[1];  // TODO ensure this matches current file
+                        let lineNum = Number(res[2]) - 1;
+                        let startChar = Number(res[3]);
+                        let endChar = Number(res[4]);
+                        let msg = lines[++i];
 
                         diags.push(new vscode.Diagnostic(
                             new vscode.Range(new vscode.Position(lineNum, startChar),
                                 new vscode.Position(lineNum, endChar)),
                             msg,
-                            (res[3].toLowerCase() === 'error' ?
+                            (msg.startsWith('Error') ?
                                 vscode.DiagnosticSeverity.Error
                                 : vscode.DiagnosticSeverity.Information)
                             // relatedInformation: [  // TODO
                             //     new vscode.DiagnosticRelatedInformation(new vscode.Location(document.uri, new vscode.Range(new vscode.Position(1, 8), new vscode.Position(1, 9))), 'first assignment to `x`')
                             // ]
                         ));
-                        // console.log(`${res[1]}/${res[2]}: ${res[3]}`);
-                    } else {
-                        console.log(lines[i++]);
+                    } else if (res2) {
+                        let errorFile = res2[1];
+                        let startLine = Number(res2[2]) - 1;
+                        let startChar = Number(res2[3]);
+                        let endLine = Number(res2[4]) - 1;
+                        let endChar = Number(res2[5]);
+                        let msg = lines[++i];
+
+                        diags.push(new vscode.Diagnostic(
+                            new vscode.Range(new vscode.Position(startLine, startChar),
+                                new vscode.Position(endLine, endChar)),
+                            msg,
+                            (msg.startsWith('Error') ?
+                                vscode.DiagnosticSeverity.Error
+                                : vscode.DiagnosticSeverity.Information)
+                        ));
+                    } else if (lines[i].trim() !== '') {
+                        console.log("Couldn't match line:");
+                        console.log(lines[i]);
                     }
+                    i++;
                 }
                 State.diagnostics.set(document.uri, diags);
-                if (diags.length === 0) {
+                let fileName = filePath.split('/').pop();
+                if (code === 0) {
                     vscode.window.showInformationMessage(
-                        fileName + ' verified successfully.');
+                        'Grasshopper: ' + fileName + ' verified successfully.');
+                } else if (diags.length > 0) {
+                    vscode.window.showInformationMessage(
+                        'Grasshopper: ' + fileName + ': ' + diags.length + ' errors.');
                 } else {
                     vscode.window.showInformationMessage(
-                        fileName + ': ' + diags.length + ' errors.');
+                        'Grasshopper: ' + fileName + ': verification failed with code ' + code);
                 }
             });
-            childProcess.stderr.on('data', (data: Buffer) => { console.log(data); });
         } else {
             vscode.window.showErrorMessage('Failed to start subprocess.');
         }

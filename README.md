@@ -20,7 +20,6 @@ This extension currently assumes it is installed and the path contains a `grassh
 
 ## Feature TODOs
 
-* Fix `verifyFile`.
 * Map `verifyFile` to `F5` only when Grasshopper file is active.
 * Display verification time.
 * Show progress/running time in status bar.
