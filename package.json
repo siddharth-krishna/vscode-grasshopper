@@ -25,7 +25,7 @@
             {
                 "command": "grasshopper.verifyFile",
                 "key": "f5",
-                "when": "editorTextFocus"
+                "when": "editorLangId == grasshopper"
             }
         ],
         "languages": [
