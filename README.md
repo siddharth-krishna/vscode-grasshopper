@@ -20,11 +20,14 @@ This extension currently assumes it is installed and the path contains a `grassh
 
 ## Feature TODOs
 
+* Syntax highlight: pure, predicate, options, TODO, procedure names, types.
+* Type Errors appear as warnings not errors.
 * Map `verifyFile` to `F5` only when Grasshopper file is active.
 * Display verification time.
 * Show progress/running time in status bar.
 * Better syntax highlighting: arithmetic expressions, procedure names.
 * Display math operators using unicode symbols.
+* Snippets for assert/assume/etc.
 
 <!-- ## Extension Settings
 
