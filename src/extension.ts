@@ -46,9 +46,9 @@ function verifyFile(): void {
             console.log('Failed to start subprocess.\n' + err);
         });
         if (childProcess.pid) {
-            childProcess.stdout.on('data', (data: Buffer) => { rawResult += data; });
-            childProcess.stderr.on('data', (data: Buffer) => { rawResult += data; });
-            childProcess.on('close', (code: Number, signal: string) => {
+            childProcess.stdout.on('data', (data: Buffer) => rawResult += data);
+            childProcess.stderr.on('data', (data: Buffer) => rawResult += data);
+            childProcess.on('close', (code: Number, _: string) => {
                 console.log(rawResult);
                 let lines = rawResult.split('\n');
                 let errorRegex = '^File "([^"]*)", line (\\d+), columns (\\d+)-(\\d+):$';
@@ -108,15 +108,16 @@ function verifyFile(): void {
                     vscode.window.showInformationMessage(
                         'Grasshopper: ' + fileName + ': ' + diags.length + ' errors.');
                 } else {
-                    vscode.window.showInformationMessage(
+                    vscode.window.showErrorMessage(
                         'Grasshopper: ' + fileName + ': verification failed with code ' + code);
                 }
             });
         } else {
-            vscode.window.showErrorMessage('Failed to start subprocess.');
+            vscode.window.showErrorMessage(
+                'Grasshopper: Failed to start subprocess.');
         }
     } else {
-        vscode.window.showErrorMessage('No active window.');
+        vscode.window.showErrorMessage('Grasshopper: No active window.');
     }
 
 }
