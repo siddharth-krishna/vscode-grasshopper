@@ -137,12 +137,15 @@ function verifyFile(): void {
     let filePath = vscode.window.activeTextEditor.document.fileName;
     let fileName = filePath.split('/').pop();
 
-    // Create a progress bar notification:
-    vscode.window.withProgress({
-      location: vscode.ProgressLocation.Notification,
-      title: `Grasshopper: verifying ${fileName}...`,
-      cancellable: true
-    }, (_progress, token) => callGrasshopper(document, filePath, token));
+    // Save file before calling Grasshopper
+    document.save().then(() =>
+      // Create a progress bar notification:
+      vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: `Grasshopper: verifying ${fileName}...`,
+        cancellable: true
+      }, (_progress, token) => callGrasshopper(document, filePath, token))
+    );
   } else {
     vscode.window.showErrorMessage('Grasshopper: No active window.');
   }
