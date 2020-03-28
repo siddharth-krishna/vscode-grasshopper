@@ -34,7 +34,11 @@ function callGrasshopper(document: vscode.TextDocument, filePath: string,
   token: vscode.CancellationToken): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let rawResult = '';
-    let cp = childProcess.spawn('grasshopper', [filePath], undefined)
+    let ghpArgs: string[] = []; // TODO get args from user
+    let args = ['-f', 'TIME %e', 'grasshopper'].concat(ghpArgs, [filePath]);
+
+    console.log(`\\n${new Date().toLocaleString()}\\ntime ${args.join(' ')}`);
+    let cp = childProcess.spawn('time', args, undefined)
       .on('error', (err) => {
         vscode.window.showErrorMessage(
           'Grasshopper: Failed to start subprocess.');
@@ -43,6 +47,7 @@ function callGrasshopper(document: vscode.TextDocument, filePath: string,
     cp.stdout.on('data', (data: Buffer) => rawResult += data);
     cp.stderr.on('data', (data: Buffer) => rawResult += data);
     token.onCancellationRequested(() => cp.kill('SIGINT'));
+
     cp.on('close', (code: Number, _: string) => {
       console.log(rawResult);
       let lines = rawResult.split('\n');
@@ -51,6 +56,7 @@ function callGrasshopper(document: vscode.TextDocument, filePath: string,
         '^File "([^"]*)", line (\\d+), column (\\d+) to line (\\d+), column (\\d+):$';
       let i = 0;
       let diags = [];
+      let time = '';
       while (i < lines.length) {
         let res = lines[i].match(errorRegex);
         let res2 = lines[i].match(errorRegex2);
@@ -88,6 +94,11 @@ function callGrasshopper(document: vscode.TextDocument, filePath: string,
               vscode.DiagnosticSeverity.Error
               : vscode.DiagnosticSeverity.Information)
           ));
+        } else if (lines[i].startsWith('TIME')) {
+          let rawSecs = lines[i].split(' ')[1];
+          let mins = Math.floor(+rawSecs / 60);
+          let secs = (+rawSecs % 60).toFixed(1);
+          time = (mins > 0 ? mins + 'm' : '') + secs + 's';
         } else if (lines[i].trim() !== '') {
           console.log("Couldn't match line:");
           console.log(lines[i]);
@@ -98,15 +109,16 @@ function callGrasshopper(document: vscode.TextDocument, filePath: string,
       let fileName = filePath.split('/').pop();
       if (code === 0) {
         vscode.window.showInformationMessage(
-          `Grasshopper: ${fileName} verified successfully.`);
+          `Grasshopper: ${fileName} verified successfully (${time}).`);
       } else if (diags.length > 0) {
         vscode.window.showInformationMessage(
-          `Grasshopper: ${fileName}: ${diags.length} errors.`);
+          `Grasshopper: ${fileName}: ${diags.length} errors (${time}).`);
       } else if (code === 130) {
-        vscode.window.showInformationMessage('Grasshopper: interrupted.');
+        vscode.window.showInformationMessage(
+          `Grasshopper: interrupted (${time}).`);
       } else {
         vscode.window.showErrorMessage(
-          `Grasshopper: verification failed with code ${code}.`);
+          `Grasshopper: verification failed with code ${code} (${time}).`);
       }
       resolve();
     });
