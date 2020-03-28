@@ -112,7 +112,8 @@ function callGrasshopper(document: vscode.TextDocument, filePath: string,
           `Grasshopper: ${fileName} verified successfully (${time}).`);
       } else if (diags.length > 0) {
         vscode.window.showInformationMessage(
-          `Grasshopper: ${fileName}: ${diags.length} errors (${time}).`);
+          `Grasshopper: ${fileName}: ${diags.length} error`
+          + `${diags.length > 1 ? 's' : ''} (${time}).`);
       } else if (code === 130) {
         vscode.window.showInformationMessage(
           `Grasshopper: interrupted (${time}).`);
