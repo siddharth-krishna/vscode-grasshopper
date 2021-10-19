@@ -36,11 +36,16 @@
             "include": "#constants-and-special-vars"
         },
         {
-            "include": "#keywords"
-        },
-        {
-            "match": "(\\s*([^: ]+):(\n|\r))",
-            "name": "entity.name.block.grasshopper"
+            "match": "(\\b(function|predicate|define|lemma)\\b)(\\s+)((\\w|\\?)*)",
+            "name": "meta.function.grasshopper",
+            "captures": {
+                "2": {
+                    "name": "storage.type.declaration.grasshopper"
+                },
+                "4" : {
+                    "name": "entity.name.function.grasshopper"
+                }
+            }
         },
         {
             "match": ";",
@@ -64,7 +69,7 @@
             "patterns": [
                 {
                     "name": "storage.type.declaration.grasshopper",
-                    "match": "\\b(axiom|const|function|implementation|procedure|type|var)\\b"
+                    "match": "\\b(axiom|const|lemma|procedure|type|datatype|struct|var|options|include|define)\\b"
                 },
                 {
                     "name": "storage.type.grasshopper",
@@ -72,15 +77,11 @@
                 },
                 {
                     "name": "storage.modifier.grasshopper",
-                    "match": "(?<![\\w$.])(complete|finite|free|unique|where)(?![\\w$.])"
-                },
-                {
-                    "name": "keyword.other.specification.grasshopper",
-                    "match": "\\b(requires|ensures|modifies|returns|invariant)\\b"
+                    "match": "(?<![\\w$.])(auto)(?![\\w$.])"
                 },
                 {
                     "name": "keyword.control.grasshopper",
-                    "match": "\\b(break|call|while|goto|return)\\b"
+                    "match": "\\b(while|return)\\b"
                 },
                 {
                     "name": "keyword.control.conditional.grasshopper",
@@ -88,7 +89,7 @@
                 },
                 {
                     "name": "keyword.control.statement.grasshopper",
-                    "match": "\\b(assert|assume|havoc)\\b"
+                    "match": "\\b(pure|assert|assume|with|havoc|requires|ensures|modifies|returns|invariant|matching|yields)\\b"
                 },
                 {
                     "name": "keyword.operator.assignment.grasshopper",
