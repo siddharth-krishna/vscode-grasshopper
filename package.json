@@ -24,7 +24,7 @@
         "keybindings": [
             {
                 "command": "grasshopper.verifyFile",
-                "key": "f5",
+                "key": "Ctrl+Alt+G",
                 "when": "editorLangId == grasshopper"
             }
         ],
